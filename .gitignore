@@ -1,0 +1,73 @@
+# Environment and secrets - NEVER commit these
+.env
+.env.local
+.env.*.local
+*.json
+!composer.json
+!package.json
+!**/composer.json
+!**/package.json
+
+# Logs
+*.log
+logs/
+php_errors.log
+reminders_error.log
+
+# Composer - install on server with: composer install --no-dev
+/vendor/
+
+# User uploads and generated files (keep folders via .gitkeep if needed)
+/uploads/*
+!/uploads/.gitkeep
+/storage/*
+!/storage/.gitkeep
+!/storage/google_tokens/.gitkeep
+/temp_qrcodes/*
+!/temp_qrcodes/.gitkeep
+/profiles/*
+!/profiles/.gitkeep
+
+# One-off fix/debug scripts (not needed on production)
+/fix_*.php
+/final_fix.php
+/enum_fix.php
+/direct_*.php
+/emergency_fix.php
+/simple_db_fix.php
+/debug_login.php
+/diagnostic.php
+/file_debug.php
+/workflow_debug.php
+/test_*.php
+/test_*.html
+/test_*.json
+/force_fix_*.php
+/initialize_workflow.php
+/update_document_status.php
+/update_document_workflow.php
+/update_database.php
+/generate_notifications.php
+/setup_reminders.php
+/migrate_reminders_to_datetime.php
+/get_documents_by_date.php
+/temp_revise_document.php
+fixes_summary.txt
+
+# Backups and temp
+*.bak
+*.original
+*.sql
+!database/*.sql
+!database/migrations/*.sql
+
+# OS and IDE
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Deploy output (optional)
+/deploy/files_to_upload/

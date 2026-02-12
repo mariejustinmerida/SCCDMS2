@@ -1,0 +1,15 @@
+# Use LF in the repo so the Linux server (Digital Ocean) gets correct line endings.
+# Git will normalize line endings on commit/checkout.
+* text=auto eol=lf
+
+# Binary files: do not change line endings
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.docx binary
+*.doc binary
+*.zip binary
+*.z binary
