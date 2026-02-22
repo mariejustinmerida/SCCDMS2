@@ -75,7 +75,8 @@ class EnhancedNotificationSystem {
 
     async loadNotifications() {
         try {
-            const response = await fetch('../api/get_notifications.php');
+            const response = await fetch('../api/get_notifications.php', { credentials: 'same-origin' });
+            if (!response.ok) return;
             const data = await response.json();
 
             if (data.success && data.notifications) {

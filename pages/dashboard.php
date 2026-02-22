@@ -1016,14 +1016,13 @@ function human_time_diff($timestamp) {
         });
       }
       
-      // Close notifications when clicking outside
+      // Close notifications when clicking outside (guard nulls for SSR/slow DOM)
       document.addEventListener('click', function(e) {
-        if (notificationsContainer && 
-            !notificationsContainer.classList.contains('hidden') && 
-            !notificationsContainer.contains(e.target) && 
-            !notificationBell.contains(e.target)) {
-          notificationsContainer.classList.add('hidden');
-        }
+        if (!notificationsContainer) return;
+        if (notificationsContainer.classList.contains('hidden')) return;
+        if (notificationsContainer.contains(e.target)) return;
+        if (notificationBell && notificationBell.contains(e.target)) return;
+        notificationsContainer.classList.add('hidden');
       });
       
       // Close button functionality
@@ -1072,7 +1071,7 @@ function human_time_diff($timestamp) {
         
         console.log('Loading notifications...');
         
-        fetch('../api/get_notifications.php')
+        fetch('../api/get_notifications.php', { credentials: 'same-origin' })
           .then(response => {
             if (!response.ok) {
               throw new Error('Network response was not ok');
@@ -1084,7 +1083,7 @@ function human_time_diff($timestamp) {
             
             if (data.success && data.notifications && data.notifications.length > 0) {
               notificationsList.innerHTML = '';
-              noNotifications.classList.add('hidden');
+              if (noNotifications) noNotifications.classList.add('hidden');
               
               data.notifications.forEach(notification => {
                 const notificationItem = document.createElement('div');
@@ -1390,7 +1389,7 @@ function human_time_diff($timestamp) {
   
   <!-- Enhanced Notification System - REMOVED: Using direct implementation -->
   <!-- <script src="../assets/js/enhanced-notifications.js"></script> -->
-  <!-- Include reminder notification system -->
+  <!-- Include reminder notification system. Ensure assets/js/reminder-notifications.js is deployed to avoid 404. -->
   <script src="../assets/js/reminder-notifications.js"></script>
 </body>
 
