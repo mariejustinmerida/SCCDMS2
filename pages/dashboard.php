@@ -6,11 +6,11 @@ ini_set('display_errors', 0);
 // Start output buffering at the very beginning of the file
 ob_start();
 
+require_once '../includes/config.php'; // must be first: sets session ini options before session_start()
+
 $valid_pages = ['dashboard_content', 'compose', 'documents', 'incoming', 'outgoing', 'received', 'hold', 'approved', 'track', 'user_logs', 'generate_test_logouts', 'view', 'edit', 'view_document', 'approve_document', 'resume', 'request_revision', 'revise_document', 'documents_needing_revision', 'document_qr_approval', 'simple_approval', 'admin_verify', 'document_with_qr_wrapper', 'rejected', 'ai_settings', 'test_ai_features', 'settings', 'admin_users', 'admin_documents', 'admin_roles_offices', 'drafts', 'reminders'];
 $page = isset($_GET['page']) && in_array($_GET['page'], $valid_pages) ? $_GET['page'] : 'dashboard_content';
 $page_file = $page . '.php';
-session_start(); // Start session to access session variables
-require_once '../includes/config.php';
 require_once '../includes/activity_logger.php'; // Include activity logger
 
 // Check if user is logged in
