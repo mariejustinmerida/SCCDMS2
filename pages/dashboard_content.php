@@ -3182,8 +3182,13 @@ $trees_saved = ($total_paper_saved_kg / 1000) * 17;
 
 <!-- Include document AI features -->
 <script src="../assets/js/document-ai-features.js"></script>
-<!-- Include reminder notification system -->
-<script src="../assets/js/reminder-notifications.js"></script>
+<!-- Load reminder notification system only if file exists (avoids 404 HTML executed as JS) -->
+<script>
+(function(){
+  var u = '../assets/js/reminder-notifications.js';
+  fetch(u, { credentials: 'same-origin' }).then(function(r){ if(!r.ok) return; return r.text(); }).then(function(t){ if(!t) return; var s=document.createElement('script'); s.textContent=t; document.body.appendChild(s); }).catch(function(){});
+})();
+</script>
 
 <script>
   // Notification functionality

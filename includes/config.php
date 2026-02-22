@@ -101,7 +101,10 @@ if (!headers_sent()) {
     header('Referrer-Policy: strict-origin-when-cross-origin');
 }
 
-// Session security — must configure ini before session_start()
+// Session security — must configure ini before session_start().
+// This file does NOT call session_set_save_handler(). If the server logs show
+// "session_set_save_handler(): ... deprecated" or "cannot be changed when a session is active",
+// the deployed includes/config.php may be out of date — deploy this file from the repo.
 if (session_status() === PHP_SESSION_NONE) {
     $is_https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
              || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
@@ -111,6 +114,7 @@ if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.cookie_secure', $is_https ? 1 : 0);
     ini_set('session.use_strict_mode', 1);
     ini_set('session.cookie_samesite', 'Lax');
+    ini_set('session.cookie_path', '/');
     session_start();
 }
 ?>

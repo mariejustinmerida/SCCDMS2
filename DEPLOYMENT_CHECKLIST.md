@@ -67,6 +67,10 @@ Use this checklist as you go through the deployment process.
 - [ ] File uploads work
 - [ ] No error messages
 
+## Troubleshooting (App Platform / shared hosting)
+- **PHP session_set_save_handler warnings**: Deploy `includes/config.php` from this repo. The repo version does not use a custom session handler; an older or modified config on the server can cause these warnings.
+- **404 for `/assets/js/reminder-notifications.js`**: Ensure the full `assets/` folder (including `assets/js/reminder-notifications.js`) is included in your deploy. The app will still run without it; reminder toasts just won’t load until the file is present.
+
 ## Step 11: Domain Setup (Optional)
 - [ ] DNS A record added
 - [ ] DNS CNAME record added

@@ -6,7 +6,8 @@ if (!headers_sent()) { ob_start(); }
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
-session_start();
+// Load config first so session is started with correct cookie path and options (site-wide).
+// Starting session before config causes the cookie to be set for /auth/ only, so dashboard loses the session.
 require_once '../includes/config.php';
 require_once '../includes/security_events.php';
 require_once '../includes/logging.php'; // Include logging functions

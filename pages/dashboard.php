@@ -1389,8 +1389,12 @@ function human_time_diff($timestamp) {
   
   <!-- Enhanced Notification System - REMOVED: Using direct implementation -->
   <!-- <script src="../assets/js/enhanced-notifications.js"></script> -->
-  <!-- Include reminder notification system. Ensure assets/js/reminder-notifications.js is deployed to avoid 404. -->
-  <script src="../assets/js/reminder-notifications.js"></script>
+  <!-- Load reminder notification system only if file exists (avoids 404 HTML executed as JS) -->
+  <script>
+  (function(){
+    fetch('../assets/js/reminder-notifications.js', { credentials: 'same-origin' }).then(function(r){ if(!r.ok) return; return r.text(); }).then(function(t){ if(!t) return; var s=document.createElement('script'); s.textContent=t; document.body.appendChild(s); }).catch(function(){});
+  })();
+  </script>
 </body>
 
 </html>
