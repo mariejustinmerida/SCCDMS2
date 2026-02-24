@@ -938,31 +938,24 @@ function human_time_diff($timestamp) {
       // Define a constant to indicate files are being included in dashboard
       define('INCLUDED_IN_DASHBOARD', true);
       
+      // Determine which file to include. For Documents, use a simpler, safer view.
+      $include_file = $page_file;
+      if ($page === 'documents' && file_exists('documents_simple.php')) {
+        $include_file = 'documents_simple.php';
+      }
+
       // Include the requested page
-      if (file_exists($page_file)) {
+      if (file_exists($include_file)) {
         // Debug output
         if ($page === 'ai_settings') {
-          echo "<div class='bg-yellow-100 p-2 mb-4'>Debug: Loading AI Settings page. File path: $page_file, Exists: " . (file_exists($page_file) ? 'Yes' : 'No') . "</div>";
+          echo "<div class='bg-yellow-100 p-2 mb-4'>Debug: Loading AI Settings page. File path: $include_file, Exists: " . (file_exists($include_file) ? 'Yes' : 'No') . "</div>";
         }
-
-        // For the documents page, temporarily enable error display so we can see server-specific issues
-        if ($page === 'documents') {
-          ini_set('display_errors', 1);
-          error_reporting(E_ALL);
-        }
-
-        include($page_file);
-
-        // Restore original error settings after including the documents page
-        if ($page === 'documents') {
-          error_reporting(0);
-          ini_set('display_errors', 0);
-        }
+        include($include_file);
       } else {
         echo "<div class='bg-white rounded-lg shadow-md p-6'>
                 <h2 class='text-xl font-semibold mb-4'>Page Not Found</h2>
                 <p class='text-gray-600'>The requested page could not be found.</p>
-                <p class='text-gray-600'>Looking for: $page_file</p>
+                <p class='text-gray-600'>Looking for: $include_file</p>
               </div>";
       }
       ?>
