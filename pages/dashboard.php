@@ -689,7 +689,10 @@ function human_time_diff($timestamp) {
       <div class="relative">
         <button id="profileBtn" class="flex items-center focus:outline-none">
           <?php if(isset($_SESSION['profile_image']) && !empty($_SESSION['profile_image'])): ?>
-            <img src="<?php echo '../' . $_SESSION['profile_image']; ?>" alt="Profile" class="w-8 h-8 rounded-full object-cover cursor-pointer hover:opacity-80">
+            <img src="<?php echo htmlspecialchars('../' . $_SESSION['profile_image']); ?>" alt="Profile" class="w-8 h-8 rounded-full object-cover cursor-pointer hover:opacity-80" onerror="this.style.display='none'; this.nextElementSibling && (this.nextElementSibling.style.display='flex');">
+            <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 hidden" style="display:none;">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
+            </div>
           <?php else: ?>
             <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
