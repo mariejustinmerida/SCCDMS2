@@ -7,16 +7,10 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Ensure required PHP extensions and files exist (avoid 500 on production)
-if (!extension_loaded('zip')) {
-    echo '<div class="p-4 bg-red-50 text-red-800 border border-red-200 rounded mx-4"><strong>Documents page unavailable.</strong> PHP <code>zip</code> extension is missing. On the server run: <code>sudo apt install php-zip</code> then <code>sudo systemctl restart apache2</code>.</div>';
-    return;
-}
-$autoload = __DIR__ . '/../vendor/autoload.php';
-if (!file_exists($autoload)) {
-    echo '<div class="p-4 bg-red-50 text-red-800 border border-red-200 rounded mx-4"><strong>Documents page unavailable.</strong> Composer dependencies not installed. On the server run in project root: <code>composer install --no-dev</code>.</div>';
-    return;
-}
+// Do NOT load Composer here — it can cause 500 on some servers (missing zip, etc.).
+// Autoload is loaded only when PDF/DOCX extraction or AI is used (lazy-loaded in those functions).
+require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/file_helpers.php';
 
 // Function to normalize file paths for consistent handling
 function fixFilePath($path) {
@@ -29,9 +23,6 @@ function fixFilePath($path) {
     
     return $web_path;
 }
-require_once __DIR__ . '/../vendor/autoload.php';
-require_once '../includes/config.php';
-require_once '../includes/file_helpers.php';
 
 // Create uploads directory if it doesn't exist
 $upload_dir = "../storage/uploads/";
@@ -97,8 +88,15 @@ function callOpenAI($query, $documents) {
     return json_decode($result['candidates'][0]['content']['parts'][0]['text'], true);
 }
 
-// Function to extract text from PDF
+// Function to extract text from PDF (lazy-loads Composer when first used)
 function extractPdfContent($filePath) {
+    $autoload = __DIR__ . '/../vendor/autoload.php';
+    if (file_exists($autoload)) {
+        require_once $autoload;
+    }
+    if (!class_exists('Smalot\PdfParser\Parser')) {
+        return '';
+    }
     $parser = new \Smalot\PdfParser\Parser();
     try {
         $pdf = $parser->parseFile($filePath);
@@ -109,8 +107,15 @@ function extractPdfContent($filePath) {
     }
 }
 
-// Function to extract text from DOCX
+// Function to extract text from DOCX (lazy-loads Composer when first used)
 function extractDocxContent($filePath) {
+    if (!extension_loaded('zip')) {
+        return '';
+    }
+    $autoload = __DIR__ . '/../vendor/autoload.php';
+    if (file_exists($autoload)) {
+        require_once $autoload;
+    }
     $content = '';
     $zip = new ZipArchive();
 
@@ -280,54 +285,9 @@ function getDocumentsByStatus() {
     
     if ($result && $result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
-            // Extract document text content for search
-            $content = "";
-            
-            // If there's a file path, try to extract content
-            if (!empty($row['file_path'])) {
-                $filePath = $row['file_path'];
-                $fileExt = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-                
-                // Only extract content for files that exist
-                if (file_exists($filePath)) {
-                    switch($fileExt) {
-                        case 'pdf':
-                            if (function_exists('extractPdfContent')) {
-                                $content = extractPdfContent($filePath);
-                            }
-                            break;
-                        case 'docx':
-                        case 'doc':
-                            if (function_exists('extractDocxContent')) {
-                                $content = extractDocxContent($filePath);
-                            }
-                            break;
-                        case 'txt':
-                            if (function_exists('extractTxtContent')) {
-                                $content = extractTxtContent($filePath);
-                            } else {
-                                // Simple fallback
-                                $content = @file_get_contents($filePath);
-                            }
-                            break;
-                        case 'html':
-                        case 'htm':
-                            if (function_exists('extractHtmlContent')) {
-                                $content = extractHtmlContent($filePath);
-                            } else {
-                                // Simple fallback
-                                $html = @file_get_contents($filePath);
-                                $content = strip_tags($html);
-                            }
-                            break;
-                    }
-                }
-            }
-            
-            // If we couldn't extract content or there's no file, use title and other metadata as content
-            if (empty($content)) {
-                $content = $row['title'] . ' ' . ($row['description'] ?? '') . ' ' . $row['type_name'];
-            }
+            // Use only metadata for list view so we never load Composer/PDF/DOCX on initial page load
+            // (avoids 500 on servers missing php-zip or Composer deps). AI search loads extraction on demand.
+            $content = $row['title'] . ' ' . ($row['description'] ?? '') . ' ' . ($row['type_name'] ?? '');
             
             // Create a file data array for this document
             $file_data = [
@@ -592,8 +552,8 @@ if (isset($_SESSION['user_id'])) {
 
 // Get documents organized by status and office
 $folders_data = getDocumentsByStatus();
-$status_folders = $folders_data['status_folders'];
-$office_folders = $folders_data['office_folders'];
+$status_folders = $folders_data['status_folders'] ?? [];
+$office_folders = $folders_data['office_folders'] ?? [];
 ?>
 <!DOCTYPE html>
 <html>
