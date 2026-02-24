@@ -7,6 +7,17 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Ensure required PHP extensions and files exist (avoid 500 on production)
+if (!extension_loaded('zip')) {
+    echo '<div class="p-4 bg-red-50 text-red-800 border border-red-200 rounded mx-4"><strong>Documents page unavailable.</strong> PHP <code>zip</code> extension is missing. On the server run: <code>sudo apt install php-zip</code> then <code>sudo systemctl restart apache2</code>.</div>';
+    return;
+}
+$autoload = __DIR__ . '/../vendor/autoload.php';
+if (!file_exists($autoload)) {
+    echo '<div class="p-4 bg-red-50 text-red-800 border border-red-200 rounded mx-4"><strong>Documents page unavailable.</strong> Composer dependencies not installed. On the server run in project root: <code>composer install --no-dev</code>.</div>';
+    return;
+}
+
 // Function to normalize file paths for consistent handling
 function fixFilePath($path) {
     // Replace backslashes with forward slashes for web URLs
