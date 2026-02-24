@@ -944,7 +944,20 @@ function human_time_diff($timestamp) {
         if ($page === 'ai_settings') {
           echo "<div class='bg-yellow-100 p-2 mb-4'>Debug: Loading AI Settings page. File path: $page_file, Exists: " . (file_exists($page_file) ? 'Yes' : 'No') . "</div>";
         }
+
+        // For the documents page, temporarily enable error display so we can see server-specific issues
+        if ($page === 'documents') {
+          ini_set('display_errors', 1);
+          error_reporting(E_ALL);
+        }
+
         include($page_file);
+
+        // Restore original error settings after including the documents page
+        if ($page === 'documents') {
+          error_reporting(0);
+          ini_set('display_errors', 0);
+        }
       } else {
         echo "<div class='bg-white rounded-lg shadow-md p-6'>
                 <h2 class='text-xl font-semibold mb-4'>Page Not Found</h2>

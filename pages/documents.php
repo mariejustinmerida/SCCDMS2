@@ -1,5 +1,5 @@
 <?php
-// Suppress PHP warnings to avoid displaying them on the page
+// Suppress notices/warnings in normal operation (errors for this page are handled by dashboard.php when needed)
 error_reporting(0);
 ini_set('display_errors', 0);
 
