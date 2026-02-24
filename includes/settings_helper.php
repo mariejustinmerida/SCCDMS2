@@ -17,8 +17,28 @@ function get_setting(string $name, $default = null) {
 function set_setting(string $name, $value): bool {
 	global $conn;
 	$sql = "INSERT INTO settings (setting_name, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)";
+
+	// First attempt to prepare the statement
 	$stmt = $conn->prepare($sql);
-	if (!$stmt) { return false; }
+
+	// If the settings table doesn't exist yet, create it on the fly
+	if (!$stmt) {
+		$createSql = "CREATE TABLE IF NOT EXISTS settings (
+			setting_id INT AUTO_INCREMENT PRIMARY KEY,
+			setting_name VARCHAR(255) NOT NULL UNIQUE,
+			setting_value TEXT,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+		)";
+		@$conn->query($createSql);
+
+		// Try preparing again after creating the table
+		$stmt = $conn->prepare($sql);
+		if (!$stmt) {
+			return false;
+		}
+	}
+
 	$stmt->bind_param('ss', $name, $value);
 	$ok = $stmt->execute();
 	$stmt->close();
