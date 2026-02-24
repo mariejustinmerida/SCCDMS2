@@ -1,7 +1,14 @@
 <?php
-// Suppress notices/warnings in normal operation (errors for this page are handled by dashboard.php when needed)
-error_reporting(0);
-ini_set('display_errors', 0);
+// Normal mode: suppress notices/warnings.
+// Debug mode: show full errors when opened with `&debug=1`.
+$documents_debug = isset($_GET['debug']) && $_GET['debug'] === '1';
+if ($documents_debug) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', '1');
+} else {
+    error_reporting(0);
+    ini_set('display_errors', '0');
+}
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
