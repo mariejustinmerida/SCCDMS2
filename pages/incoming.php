@@ -2118,24 +2118,27 @@ document.addEventListener('DOMContentLoaded', function () {
             updateTable(location.pathname + location.search, false);
         }
     });
+
+    // Simple action menu toggler and outside click handler
+    window.toggleActionMenu = function(id) {
+        const menu = document.getElementById(id);
+        if (!menu) return;
+        const isHidden = menu.classList.contains('hidden');
+        document.querySelectorAll('[id^="actions-"]').forEach(m => m.classList.add('hidden'));
+        if (isHidden) {
+            menu.classList.remove('hidden');
+        }
+    };
+
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('button');
+        const toggleClicked = btn && btn.getAttribute('onclick') && btn.getAttribute('onclick').includes('toggleActionMenu');
+        const inMenu = e.target.closest('[id^="actions-"]');
+        if (!toggleClicked && !inMenu) {
+            document.querySelectorAll('[id^="actions-"]').forEach(m => m.classList.add('hidden'));
+        }
+    });
 });
   </script>
 </body>
 </html>
-<script>
-// Simple action menu toggler and outside click handler
-function toggleActionMenu(id){
-  const menu = document.getElementById(id);
-  if(!menu) return;
-  const isHidden = menu.classList.contains('hidden');
-  document.querySelectorAll('[id^="actions-"]').forEach(m=>m.classList.add('hidden'));
-  if(isHidden){ menu.classList.remove('hidden'); }
-}
-document.addEventListener('click', function(e){
-  const toggleClicked = e.target.closest('button') && e.target.closest('button').getAttribute('onclick') && e.target.closest('button').getAttribute('onclick').includes('toggleActionMenu');
-  const inMenu = e.target.closest('[id^="actions-"]');
-  if(!toggleClicked && !inMenu){
-    document.querySelectorAll('[id^="actions-"]').forEach(m=>m.classList.add('hidden'));
-  }
-});
-</script>
