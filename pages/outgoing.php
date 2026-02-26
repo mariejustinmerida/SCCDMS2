@@ -198,14 +198,17 @@ if (!empty($search_term)) {
                   exit();
               }
 
-              // Count total records for pagination - match dashboard/approved-style global view
-              $count_sql = "SELECT COUNT(DISTINCT d.document_id) as total FROM documents d
+              // Count total records for pagination - match dashboard outgoing count exactly:
+              // documents created by the current office that are not approved/rejected.
+              $officeId = (int)$_SESSION['office_id'];
+              $count_sql = "SELECT COUNT(DISTINCT d.document_id) as total 
+                           FROM documents d
                            JOIN document_types dt ON d.type_id = dt.type_id 
                            JOIN users u ON d.creator_id = u.user_id
-                           LEFT JOIN document_workflow dw ON d.document_id = dw.document_id AND (dw.status = 'current' OR dw.status = 'on_hold' OR dw.status = 'ON_HOLD')
-                           LEFT JOIN offices o ON dw.office_id = o.office_id
-                           WHERE d.status != 'approved' 
-                           AND d.status != 'rejected'$search_condition";
+                           JOIN offices o ON u.office_id = o.office_id
+                           WHERE u.office_id = {$officeId}
+                           AND d.status != 'approved' 
+                           AND d.status != 'rejected'{$search_condition}";
               
               $count_result = $conn->query($count_sql);
               if (!$count_result) {
@@ -215,47 +218,26 @@ if (!empty($search_term)) {
               }
               $total_pages = ceil($total_records / $items_per_page);
 
-              // Main query - show all non-approved / non-rejected documents, regardless of creator office
-              $sql = "SELECT d.document_id, d.title, dt.type_name, 
-                      COALESCE(o.office_name, 'None') as current_office, 
-                      CASE 
-                          WHEN d.status IS NULL OR d.status = '' THEN 'pending'
-                          ELSE d.status
-                      END as status,
-                      d.created_at,
-                      d.is_memorandum,
-                      d.memorandum_sent_to_all_offices,
-                      d.memorandum_total_offices,
-                      d.memorandum_read_offices,
-                      CASE 
-                          WHEN d.is_memorandum = 1 AND d.memorandum_sent_to_all_offices = 1 THEN 'Sent to All Offices'
-                          WHEN d.status = 'rejected' THEN 'Rejected'
-                          WHEN d.status = 'on_hold' OR d.status = 'ON_HOLD' OR LOWER(d.status) = 'hold' THEN 
-                              COALESCE(
-                                (SELECT CONCAT('On Hold at ', 
-                                    SUBSTRING_INDEX(
-                                        SUBSTRING_INDEX(details, 'Document put on hold by ', -1), 
-                                        ':', 1
-                                    )
-                                ) 
-                                FROM document_logs 
-                                WHERE document_id = d.document_id AND action = 'hold' 
-                                ORDER BY created_at DESC LIMIT 1),
-                                'On Hold'
-                              )
-                          WHEN d.status = 'revision_requested' THEN 'Revision Requested'
-                          ELSE COALESCE(o.office_name, 'Pending Assignment')
-                      END as display_office
+              // Main query – match dashboard outgoing semantics:
+              // documents created by the current office that are not approved/rejected.
+              $sql = "SELECT d.document_id,
+                             d.title,
+                             dt.type_name,
+                             o.office_name as current_office,
+                             CASE 
+                                WHEN d.status IS NULL OR d.status = '' THEN 'pending'
+                                ELSE d.status
+                             END as status,
+                             d.created_at
                       FROM documents d
                       JOIN document_types dt ON d.type_id = dt.type_id 
                       JOIN users u ON d.creator_id = u.user_id
-                      LEFT JOIN document_workflow dw ON d.document_id = dw.document_id AND (dw.status = 'current' OR dw.status = 'on_hold' OR dw.status = 'ON_HOLD')
-                      LEFT JOIN offices o ON dw.office_id = o.office_id
-                      WHERE d.status != 'approved' 
-                      AND d.status != 'rejected'$search_condition
-                      GROUP BY d.document_id
+                      JOIN offices o ON u.office_id = o.office_id
+                      WHERE u.office_id = {$officeId}
+                      AND d.status != 'approved' 
+                      AND d.status != 'rejected'{$search_condition}
                       ORDER BY d.created_at DESC
-                      LIMIT $offset, $items_per_page";
+                      LIMIT {$offset}, {$items_per_page}";
 
               $result = $conn->query($sql);
 
