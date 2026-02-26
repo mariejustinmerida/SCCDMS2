@@ -249,8 +249,7 @@ function format_datetime_fallback(?string $timestamp): string {
                         WHERE action = 'resume'
                         GROUP BY document_id
                     ) resume_logs ON d.document_id = resume_logs.document_id
-                    WHERE dw.office_id = $office_id
-                    AND UPPER(dw.status) = 'CURRENT'
+                    WHERE UPPER(dw.status) = 'CURRENT'
                     AND (hold_logs.document_id IS NULL OR (resume_logs.document_id IS NOT NULL AND resume_logs.latest_resume > hold_logs.latest_hold))
                     $search_condition 
                     ORDER BY d.created_at DESC
@@ -275,8 +274,7 @@ function format_datetime_fallback(?string $timestamp): string {
                              WHERE action = 'resume'
                              GROUP BY document_id
                          ) resume_logs ON d.document_id = resume_logs.document_id
-                         WHERE dw.office_id = $office_id
-                         AND UPPER(dw.status) = 'CURRENT'
+                         WHERE UPPER(dw.status) = 'CURRENT'
                          AND (hold_logs.document_id IS NULL OR (resume_logs.document_id IS NOT NULL AND resume_logs.latest_resume > hold_logs.latest_hold))
                          $search_condition";
             

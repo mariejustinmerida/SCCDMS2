@@ -198,14 +198,13 @@ if (!empty($search_term)) {
                   exit();
               }
 
-              // Count total records for pagination - exclude approved and rejected documents
+              // Count total records for pagination - match dashboard/approved-style global view
               $count_sql = "SELECT COUNT(DISTINCT d.document_id) as total FROM documents d
                            JOIN document_types dt ON d.type_id = dt.type_id 
                            JOIN users u ON d.creator_id = u.user_id
                            LEFT JOIN document_workflow dw ON d.document_id = dw.document_id AND (dw.status = 'current' OR dw.status = 'on_hold' OR dw.status = 'ON_HOLD')
                            LEFT JOIN offices o ON dw.office_id = o.office_id
-                           WHERE u.office_id = {$_SESSION['office_id']} 
-                           AND d.status != 'approved' 
+                           WHERE d.status != 'approved' 
                            AND d.status != 'rejected'$search_condition";
               
               $count_result = $conn->query($count_sql);
@@ -216,6 +215,7 @@ if (!empty($search_term)) {
               }
               $total_pages = ceil($total_records / $items_per_page);
 
+              // Main query - show all non-approved / non-rejected documents, regardless of creator office
               $sql = "SELECT d.document_id, d.title, dt.type_name, 
                       COALESCE(o.office_name, 'None') as current_office, 
                       CASE 
@@ -251,8 +251,7 @@ if (!empty($search_term)) {
                       JOIN users u ON d.creator_id = u.user_id
                       LEFT JOIN document_workflow dw ON d.document_id = dw.document_id AND (dw.status = 'current' OR dw.status = 'on_hold' OR dw.status = 'ON_HOLD')
                       LEFT JOIN offices o ON dw.office_id = o.office_id
-                      WHERE u.office_id = {$_SESSION['office_id']} 
-                      AND d.status != 'approved' 
+                      WHERE d.status != 'approved' 
                       AND d.status != 'rejected'$search_condition
                       GROUP BY d.document_id
                       ORDER BY d.created_at DESC
