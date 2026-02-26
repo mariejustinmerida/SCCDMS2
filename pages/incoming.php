@@ -379,7 +379,9 @@ function format_datetime_fallback(?string $timestamp): string {
                     // Dropdown menu (Approve, Reject, Request Revision, Put on Hold)
                     $doc_id = $row['document_id'];
                     $title_escaped = htmlspecialchars($row['title'], ENT_QUOTES, 'UTF-8');
-                    echo "<div id='{$menuId}' class='hidden absolute right-0 top-full mt-1 w-52 bg-white border border-gray-200 rounded shadow-lg z-20 max-h-64 overflow-y-auto'>";
+                    // Dropdown menu (Approve, Reject, Request Revision, Put on Hold)
+                    // Removed internal scroll so the page scrolls instead of the row growing a scrollbar.
+                    echo "<div id='{$menuId}' class='hidden absolute right-0 top-full mt-1 w-52 bg-white border border-gray-200 rounded shadow-lg z-20'>";
                     echo "  <button type='button' class='w-full text-left block px-3 py-2 hover:bg-gray-50 text-sm flex items-center cursor-pointer document-action-btn' data-doc-id='{$doc_id}' data-action='approve' data-title='{$title_escaped}'><i class='fas fa-check mr-2 text-green-700'></i>Approve</button>";
                     echo "  <button type='button' class='w-full text-left block px-3 py-2 hover:bg-gray-50 text-sm flex items-center cursor-pointer document-action-btn' data-doc-id='{$doc_id}' data-action='reject' data-title='{$title_escaped}'><i class='fas fa-times mr-2 text-red-600'></i>Reject</button>";
                     echo "  <button type='button' class='w-full text-left block px-3 py-2 hover:bg-gray-50 text-sm flex items-center cursor-pointer document-action-btn' data-doc-id='{$doc_id}' data-action='request_revision' data-title='{$title_escaped}'><i class='fas fa-edit mr-2 text-amber-600'></i>Request Revision</button>";
