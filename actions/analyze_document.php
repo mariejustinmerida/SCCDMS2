@@ -3,46 +3,7 @@
 require_once '../includes/config.php';
 require_once '../includes/auth_check.php';
 require_once '../includes/functions.php';
-
-// Function to extract content from Google Docs
-function extractGoogleDocsContent($doc_id) {
-    // Use Google Docs public export URL to get the document as plain text
-    $export_url = "https://docs.google.com/document/d/{$doc_id}/export?format=txt";
-    
-    // Initialize cURL session
-    $ch = curl_init();
-    
-    // Set cURL options
-    curl_setopt($ch, CURLOPT_URL, $export_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
-    
-    // Execute cURL session
-    $response = curl_exec($ch);
-    
-    // Check for cURL errors
-    if (curl_errno($ch)) {
-        error_log("Google Docs extraction cURL error: " . curl_error($ch));
-        curl_close($ch);
-        return '';
-    }
-    
-    // Get HTTP status code
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    
-    // Check if request was successful
-    if ($http_code == 200 && !empty($response)) {
-        error_log("DEBUG: Google Docs content extracted successfully, length: " . strlen($response));
-        error_log("DEBUG: First 200 chars of content: " . substr($response, 0, 200));
-        return $response;
-    } else {
-        error_log("Google Docs extraction failed with HTTP code: $http_code");
-        return '';
-    }
-}
+require_once '../includes/google_docs_manager.php';
 
 // Set content type to JSON
 header('Content-Type: application/json');
@@ -104,7 +65,15 @@ $content = '';
 // Check if this is a Google Doc
 if (!empty($document['google_doc_id'])) {
     error_log("DEBUG: Processing Google Doc with ID: " . $document['google_doc_id']);
-    $content = extractGoogleDocsContent($document['google_doc_id']);
+    try {
+        // Use the same authenticated Google Docs client used by compose/generate
+        $mgr = new GoogleDocsManager($_SESSION['user_id']);
+        $content = $mgr->getDocumentContent($document['google_doc_id']);
+    } catch (Exception $e) {
+        error_log("analyze_document.php Google Doc extraction error: " . $e->getMessage());
+        $content = '';
+    }
+
     if (empty($content)) {
         echo json_encode(['success' => false, 'message' => 'Failed to extract content from Google Doc']);
         exit;
