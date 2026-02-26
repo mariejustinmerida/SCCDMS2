@@ -4,6 +4,7 @@ require_once '../includes/config.php';
 require_once '../includes/auth_check.php';
 require_once '../includes/functions.php';
 require_once '../includes/google_docs_manager.php';
+require_once '../includes/settings_helper.php';
 
 // Set content type to JSON
 header('Content-Type: application/json');
@@ -133,8 +134,6 @@ exit;
 // Function to analyze document with Gemini
 function analyzeDocumentWithOpenAI($content, $document, $analysisType) {
     error_log("DEBUG: analyzeDocumentWithOpenAI called with content length: " . strlen($content));
-    // Use shared DB connection for settings lookups
-    global $conn;
 
     // Check if we have a Gemini API key
     $apiKey = getenv('GEMINI_API_KEY');
@@ -171,31 +170,20 @@ function analyzeDocumentWithOpenAI($content, $document, $analysisType) {
     
     error_log("DEBUG: Using Gemini API key: " . substr($apiKey, 0, 10) . "...");
     
-    // Get AI settings
-    $model = 'gemini-1.5-flash';
-    $maxTokens = 1200;
-    $temperature = 0.2;
-    
-    $modelResult = $conn ? $conn->query("SELECT setting_value FROM settings WHERE setting_name = 'ai_model'") : false;
-    if ($modelResult && $modelResult->num_rows > 0) {
-        $row = $modelResult->fetch_assoc();
-        $configuredModel = trim($row['setting_value']);
-        // Only honor configured model if it's a Gemini model
-        if (stripos($configuredModel, 'gemini') === 0) {
-            $model = $configuredModel;
-        }
+    // Get AI settings from the settings helper (safe even if table doesn't exist yet)
+    $model = get_setting('ai_model', 'gemini-1.5-flash');
+    if (empty($model) || stripos($model, 'gemini') !== 0) {
+        $model = 'gemini-1.5-flash';
     }
-    
-    $tokensResult = $conn->query("SELECT setting_value FROM settings WHERE setting_name = 'ai_max_tokens'");
-    if ($tokensResult && $tokensResult->num_rows > 0) {
-        $row = $tokensResult->fetch_assoc();
-        $maxTokens = (int)$row['setting_value'];
+
+    $maxTokens = (int)get_setting('ai_max_tokens', 1200);
+    if ($maxTokens <= 0) {
+        $maxTokens = 1200;
     }
-    
-    $tempResult = $conn->query("SELECT setting_value FROM settings WHERE setting_name = 'ai_temperature'");
-    if ($tempResult && $tempResult->num_rows > 0) {
-        $row = $tempResult->fetch_assoc();
-        $temperature = (float)$row['setting_value'];
+
+    $temperature = (float)get_setting('ai_temperature', 0.2);
+    if ($temperature < 0 || $temperature > 1) {
+        $temperature = 0.2;
     }
     
     // Truncate content if it's too long to avoid token limits
