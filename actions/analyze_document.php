@@ -133,6 +133,9 @@ exit;
 // Function to analyze document with Gemini
 function analyzeDocumentWithOpenAI($content, $document, $analysisType) {
     error_log("DEBUG: analyzeDocumentWithOpenAI called with content length: " . strlen($content));
+    // Use shared DB connection for settings lookups
+    global $conn;
+
     // Check if we have a Gemini API key
     $apiKey = getenv('GEMINI_API_KEY');
     
@@ -173,7 +176,7 @@ function analyzeDocumentWithOpenAI($content, $document, $analysisType) {
     $maxTokens = 1200;
     $temperature = 0.2;
     
-    $modelResult = $conn->query("SELECT setting_value FROM settings WHERE setting_name = 'ai_model'");
+    $modelResult = $conn ? $conn->query("SELECT setting_value FROM settings WHERE setting_name = 'ai_model'") : false;
     if ($modelResult && $modelResult->num_rows > 0) {
         $row = $modelResult->fetch_assoc();
         $configuredModel = trim($row['setting_value']);
