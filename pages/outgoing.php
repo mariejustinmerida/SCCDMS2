@@ -276,7 +276,8 @@ if (!empty($search_term)) {
                   echo "<td class='p-4 font-medium'>DOC-" . str_pad($row['document_id'], 3, '0', STR_PAD_LEFT) . "</td>";
                   echo "<td class='p-4 document-title'>" . htmlspecialchars($row['title']) . "</td>";
                   echo "<td class='p-4'>" . htmlspecialchars($row['type_name']) . "</td>";
-                  $office_name_escaped = htmlspecialchars($row['display_office'], ENT_QUOTES, 'UTF-8');
+                  // Show the current office (creator's office for outgoing documents)
+                  $office_name_escaped = htmlspecialchars($row['current_office'], ENT_QUOTES, 'UTF-8');
                   $title_escaped_for_workflow = htmlspecialchars($row['title'], ENT_QUOTES, 'UTF-8');
                   echo "<td class='p-4'><span class='cursor-pointer text-blue-600 hover:text-blue-800 hover:underline font-medium workflow-office-link' data-document-id='{$row['document_id']}' data-office-name='{$office_name_escaped}' data-document-title='{$title_escaped_for_workflow}' title='Click to view workflow route'>{$office_name_escaped}</span></td>";
                   echo "<td class='p-4'><span class='badge $status_class'>" . $status_text . "</span></td>";
